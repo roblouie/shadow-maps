@@ -1,0 +1,12 @@
+canvas {
+    width: min(100vw, calc(100vh * 16/9));
+}
+
+html, body {
+    margin: 0;
+    background-color: black;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+}
