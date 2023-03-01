@@ -19,7 +19,7 @@ void main(){
 const depthFragmentShader = `#version 300 es
 precision mediump float;
 
-out highp float fragmentdepth;
+out float fragmentdepth;
 
 void main(){
  fragmentdepth = gl_FragCoord.z;
@@ -65,7 +65,7 @@ precision mediump float;
 in vec4 vColor;
 in vec4 positionFromLightPov;
 
-uniform highp sampler2DShadow shadowMap;
+uniform mediump sampler2DShadow shadowMap;
 
 out vec4 fragColor;
 
@@ -73,10 +73,9 @@ float ambientLight = 0.5;
 
 void main()
 {
-  vec4 positionFromLightPovInTexture = positionFromLightPov * 0.5 + 0.5;
-  float bias = 0.003;
-  vec3 biased = vec3(positionFromLightPovInTexture.xy, (positionFromLightPovInTexture.z - bias));
-  float litPercent = max(texture(shadowMap, biased), ambientLight);
+  vec3 positionFromLightPovInTexture = positionFromLightPov.xyz * 0.5 + 0.5;
+  float hitByLight = texture(shadowMap, positionFromLightPovInTexture);
+  float litPercent = max(hitByLight, ambientLight);
   fragColor = vColor * litPercent;
 }`;
 

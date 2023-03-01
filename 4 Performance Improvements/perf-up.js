@@ -19,7 +19,7 @@ void main(){
 const depthFragmentShader = `#version 300 es
 precision mediump float;
 
-out float fragmentdepth;
+out highp float fragmentdepth;
 
 void main(){
  fragmentdepth = gl_FragCoord.z;
@@ -65,15 +65,19 @@ precision mediump float;
 in vec4 vColor;
 in vec4 positionFromLightPov;
 
-uniform sampler2D shadowMap;
+uniform highp sampler2DShadow shadowMap;
 
 out vec4 fragColor;
+
+float ambientLight = 0.5;
 
 void main()
 {
   vec4 positionFromLightPovInTexture = positionFromLightPov * 0.5 + 0.5;
-  float shadowAdjuster = positionFromLightPovInTexture.z < texture(shadowMap, positionFromLightPovInTexture.xy).r ? 1.0 : 0.5;
-  fragColor = shadowAdjuster * vColor;
+  float bias = 0.003;
+  vec3 biased = vec3(positionFromLightPovInTexture.xy, (positionFromLightPovInTexture.z - bias));
+  float litPercent = max(texture(shadowMap, biased), ambientLight);
+  fragColor = vColor * litPercent;
 }`;
 
 
@@ -132,7 +136,8 @@ gl.enableVertexAttribArray(1);
 const depthTextureSize = new DOMPoint(512, 512);
 const depthTexture = gl.createTexture();
 gl.bindTexture(gl.TEXTURE_2D, depthTexture);
-gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT32F, depthTextureSize.x, depthTextureSize.y, 0, gl.DEPTH_COMPONENT, gl.FLOAT, null);
+gl.texStorage2D(gl.TEXTURE_2D, 1, gl.DEPTH_COMPONENT32F, depthTextureSize.x, depthTextureSize.y);
+gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_COMPARE_MODE, gl.COMPARE_REF_TO_TEXTURE);
 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
