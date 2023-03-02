@@ -1,4 +1,9 @@
-import {createLookAt, createMultiColorCube, createOrtho, createPerspective, createProgram} from '../helper-methods.js';
+import {
+  createCubeWithNormals,
+  createLookAt, createOrtho,
+  createPerspective,
+  createProgram
+} from '../helper-methods.js';
 
 const depthVertexShader = `#version 300 es
 
@@ -24,41 +29,63 @@ void main(){
 const vertexShaderSrc = `#version 300 es
 
 layout(location=0) in vec4 aPosition;
-layout(location=1) in vec3 aColor;
+layout(location=1) in vec3 aNormal;
 
 uniform mat4 modelViewProjection;
 uniform mat4 lightPovMvp;
 
-out vec3 vColor;
+out vec3 vNormal;
 out vec4 positionFromLightPov;
 
 void main()
 {
-    vColor = aColor;
+    vNormal = aNormal;
     gl_Position = modelViewProjection * aPosition;
     positionFromLightPov = lightPovMvp * aPosition;
 }`;
 
+
 const fragmentShaderSrc = `#version 300 es
 precision mediump float;
 
-in vec3 vColor;
+uniform vec3 uLightDirection;
+
+in vec3 vNormal;
 in vec4 positionFromLightPov;
 
 uniform mediump sampler2DShadow shadowMap;
 
 out vec3 fragColor;
 
-float ambientLight = 0.5;
+float ambientLight = 0.4;
+
+vec2 adjacentPixels[4] = vec2[](
+  vec2(-1, 0), 
+  vec2(1, 0), 
+  vec2(0, 1), 
+  vec2(0, -1)
+);
+
+vec3 color = vec3(0.7, 0.7, 0.7);
+
+float visibility = 1.0;
+float shadowSpread = 1100.0;
 
 void main()
 {
-  vec4 positionFromLightInTexture = positionFromLightPov * 0.5 + 0.5;
-  float bias = 0.004;
-  vec3 biased = vec3(positionFromLightInTexture.xy, positionFromLightInTexture.z - bias);
-  float hitByLight = texture(shadowMap, biased);
-  float litPercent = max(hitByLight, ambientLight);
-  fragColor = vColor * litPercent;
+  vec3 normalizedNormal = normalize(vNormal);
+  float lightCos = max(dot(uLightDirection, normalizedNormal), 0.0);
+  float bias = 0.004 * tan(acos(lightCos));
+  bias = clamp(bias, 0.0, 0.01);
+  
+  for (int i = 0; i < 4; i++) {
+    vec3 biased = vec3(positionFromLightPov.xy + adjacentPixels[i]/shadowSpread, positionFromLightPov.z - bias);
+    float litPercent = texture(shadowMap, biased);
+    visibility *= max(litPercent, 0.83);
+  }
+  
+  float brightness = max(lightCos, ambientLight);
+  fragColor = color * brightness * visibility;
 }`;
 
 
@@ -68,11 +95,15 @@ const program = createProgram(gl, vertexShaderSrc, fragmentShaderSrc);
 const depthProgram = createProgram(gl, depthVertexShader, depthFragmentShader);
 
 gl.enable(gl.DEPTH_TEST);
+gl.enable(gl.CULL_FACE);
 
 const origin = new DOMPoint(0, 0, 0);
 
-// Set Light MVP Matrix
+// Setup Light
+gl.useProgram(program);
 const inverseLightDirection = new DOMPoint(-0.5, 2, -2);
+const lightDirectionLoc = gl.getUniformLocation(program,'uLightDirection');
+gl.uniform3fv(lightDirectionLoc, new Float32Array([inverseLightDirection.x, inverseLightDirection.y, inverseLightDirection.z]));
 const lightPovProjection = createOrtho(-1,1,-1,1,0,4);
 const lightPovView = createLookAt(inverseLightDirection, origin);
 const lightPovMvp = lightPovProjection.multiply(lightPovView);
@@ -81,10 +112,16 @@ const lightPovMvpDepthLocation = gl.getUniformLocation(depthProgram, 'lightPovMv
 gl.useProgram(depthProgram);
 gl.uniformMatrix4fv(lightPovMvpDepthLocation, false, lightPovMvp.toFloat32Array());
 
+const textureSpaceConversion = new DOMMatrix([
+  0.5, 0.0, 0.0, 0.0,
+  0.0, 0.5, 0.0, 0.0,
+  0.0, 0.0, 0.5, 0.0,
+  0.5, 0.5, 0.5, 1.0
+]);
+const textureSpaceMvp = textureSpaceConversion.multiplySelf(lightPovMvp);
 const lightPovMvpRenderLocation = gl.getUniformLocation(program, 'lightPovMvp');
 gl.useProgram(program);
-gl.uniformMatrix4fv(lightPovMvpRenderLocation, false, lightPovMvp.toFloat32Array());
-
+gl.uniformMatrix4fv(lightPovMvpRenderLocation, false, textureSpaceMvp.toFloat32Array());
 
 // Set Camera MVP Matrix
 const cameraPosition = new DOMPoint(0.6, 0.6, 0.6);
@@ -96,11 +133,11 @@ const projectionLoc = gl.getUniformLocation(program, 'modelViewProjection');
 gl.uniformMatrix4fv(projectionLoc, false, modelViewProjection.toFloat32Array());
 
 
-// Create cubes and set their data attributes
+// Create cubes and bind their data
 const verticesPerCube = 6 * 6;
 const cubes = new Float32Array([
-  ...createMultiColorCube(1, 0.1, 1, 0, 0, 0),
-  ...createMultiColorCube(0.3, 0.5, 0.1, 0, 0, 0)
+  ...createCubeWithNormals(1, 0.1, 1, 0, 0, 0),
+  ...createCubeWithNormals(0.3, 0.5, 0.1, 0, 0, 0)
 ]);
 
 const vertexBuffer = gl.createBuffer();
@@ -136,13 +173,15 @@ function draw() {
   gl.useProgram(depthProgram);
   gl.bindFramebuffer(gl.FRAMEBUFFER, depthFramebuffer);
   gl.viewport(0, 0, depthTextureSize.x, depthTextureSize.y);
+  gl.cullFace(gl.FRONT);
   gl.drawArrays(gl.TRIANGLES, 0, verticesPerCube * 2);
 
   gl.useProgram(program);
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
   gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
   gl.bindTexture(gl.TEXTURE_2D, depthTexture);
-  gl.uniform1i(shadowMapLocation, 0);
+  gl.uniform1i(shadowMapLocation, 0);  gl.cullFace(gl.FRONT);
+  gl.cullFace(gl.BACK);
 
   gl.drawArrays(gl.TRIANGLES, 0, verticesPerCube * 2);
 }

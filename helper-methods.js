@@ -23,54 +23,6 @@ export function createProgram(gl, vertexShaderText, fragmentShaderText) {
   return program;
 }
 
-// Non elegant but very simple way of drawing a multi colored cube at a given size and position
-export function createMultiColorCube(width, height, depth, x, y, z) {
-  return new Float32Array([
-    //    X           Y          Z         R G B
-    -width + x,-height + y,-depth + z,   0,1,1,
-    -width + x, height + y, depth + z,   0,1,1,
-    -width + x, height + y,-depth + z,   0,1,1,
-    -width + x, -height + y, depth + z,   0,1,1,
-    -width + x, height + y, depth + z,   0,1,1,
-    -width + x,-height + y,-depth + z,   0,1,1,
-
-    width + x ,-height + y,-depth + z,   1,0,1,
-    width + x , height + y,-depth + z,   1,0,1,
-    width + x , height + y, depth + z,   1,0,1,
-    width + x , height + y, depth + z,   1,0,1,
-    width + x ,-height + y, depth + z,   1,0,1,
-    width + x ,-height + y,-depth + z,   1,0,1,
-
-    -width + x,-height + y,-depth + z,   0,1,0,
-    width + x,-height + y,-depth + z,   0,1,0,
-    width + x,-height + y, depth + z,   0,1,0,
-    width + x,-height + y, depth + z,   0,1,0,
-    -width + x,-height + y, depth + z,   0,1,0,
-    -width + x,-height + y,-depth + z,   0,1,0,
-
-    -width + x, height + y,-depth + z,   1,1,0,
-    width + x, height + y, depth + z,   1,1,0,
-    width + x, height + y,-depth + z,   1,1,0,
-    -width + x, height + y, depth + z,   1,1,0,
-    width + x, height + y, depth + z,   1,1,0,
-    -width + x, height + y,-depth + z,   1,1,0,
-
-    width + x,-height + y,-depth + z,   0,0,1,
-    -width + x,-height + y,-depth + z,   0,0,1,
-    width + x, height + y,-depth + z,   0,0,1,
-    -width + x, height + y,-depth + z,   0,0,1,
-    width + x, height + y,-depth + z,   0,0,1,
-    -width + x,-height + y,-depth + z,   0,0,1,
-
-    -width + x,-height + y, depth + z,   1,0,0,
-    width + x,-height + y, depth + z,   1,0,0,
-    width + x, height + y, depth + z,   1,0,0,
-    width + x, height + y, depth + z,   1,0,0,
-    -width + x, height + y, depth + z,   1,0,0,
-    -width + x,-height + y, depth + z,   1,0,0,
-  ]);
-}
-
 // Matrix creation helpers
 export function createOrtho(bottom, top, left, right, near, far) {
   return new DOMMatrix([
@@ -135,4 +87,100 @@ export function normalize(v1) {
 
 export function getMagnitudeVector(v1) {
   return Math.hypot(v1.x, v1.y, v1.z);
+}
+
+// Non elegant but very simple way of drawing a multi colored cube at a given size and position
+export function createMultiColorCube(width, height, depth, x, y, z) {
+  return new Float32Array([
+    //    X           Y          Z         R G B
+    -width + x,-height + y,-depth + z,   0,1,1,
+    -width + x, height + y, depth + z,   0,1,1,
+    -width + x, height + y,-depth + z,   0,1,1,
+    -width + x, -height + y, depth + z,   0,1,1,
+    -width + x, height + y, depth + z,   0,1,1,
+    -width + x,-height + y,-depth + z,   0,1,1,
+
+    width + x ,-height + y,-depth + z,   1,0,1,
+    width + x , height + y,-depth + z,   1,0,1,
+    width + x , height + y, depth + z,   1,0,1,
+    width + x , height + y, depth + z,   1,0,1,
+    width + x ,-height + y, depth + z,   1,0,1,
+    width + x ,-height + y,-depth + z,   1,0,1,
+
+    -width + x,-height + y,-depth + z,   0,1,0,
+    width + x,-height + y,-depth + z,   0,1,0,
+    width + x,-height + y, depth + z,   0,1,0,
+    width + x,-height + y, depth + z,   0,1,0,
+    -width + x,-height + y, depth + z,   0,1,0,
+    -width + x,-height + y,-depth + z,   0,1,0,
+
+    -width + x, height + y,-depth + z,   1,1,0,
+    width + x, height + y, depth + z,   1,1,0,
+    width + x, height + y,-depth + z,   1,1,0,
+    -width + x, height + y, depth + z,   1,1,0,
+    width + x, height + y, depth + z,   1,1,0,
+    -width + x, height + y,-depth + z,   1,1,0,
+
+    width + x,-height + y,-depth + z,   0,0,1,
+    -width + x,-height + y,-depth + z,   0,0,1,
+    width + x, height + y,-depth + z,   0,0,1,
+    -width + x, height + y,-depth + z,   0,0,1,
+    width + x, height + y,-depth + z,   0,0,1,
+    -width + x,-height + y,-depth + z,   0,0,1,
+
+    -width + x,-height + y, depth + z,   1,0,0,
+    width + x,-height + y, depth + z,   1,0,0,
+    width + x, height + y, depth + z,   1,0,0,
+    width + x, height + y, depth + z,   1,0,0,
+    -width + x, height + y, depth + z,   1,0,0,
+    -width + x,-height + y, depth + z,   1,0,0,
+  ]);
+}
+
+// Non elegant but very simple way of drawing a multi colored cube at a given size and position
+export function createCubeWithNormals(width, height, depth, x, y, z) {
+  return new Float32Array([
+    //    X           Y          Z         Normal
+    -width + x,-height + y,-depth + z,   1,0,0,
+    -width + x, height + y, depth + z,   1,0,0,
+    -width + x, height + y,-depth + z,   1,0,0,
+    -width + x, -height + y, depth + z,   1,0,0,
+    -width + x, height + y, depth + z,   1,0,0,
+    -width + x,-height + y,-depth + z,   1,0,0,
+
+    width + x ,-height + y,-depth + z,   -1,0,0,
+    width + x , height + y,-depth + z,   -1,0,0,
+    width + x , height + y, depth + z,   -1,0,0,
+    width + x , height + y, depth + z,   -1,0,0,
+    width + x ,-height + y, depth + z,   -1,0,0,
+    width + x ,-height + y,-depth + z,   -1,0,0,
+
+    -width + x,-height + y,-depth + z,   0,-1,0,
+    width + x,-height + y,-depth + z,   0,-1,0,
+    width + x,-height + y, depth + z,   0,-1,0,
+    width + x,-height + y, depth + z,   0,-1,0,
+    -width + x,-height + y, depth + z,   0,-1,0,
+    -width + x,-height + y,-depth + z,   0,-1,0,
+
+    -width + x, height + y,-depth + z,   0,1,0,
+    width + x, height + y, depth + z,   0,1,0,
+    width + x, height + y,-depth + z,   0,1,0,
+    -width + x, height + y, depth + z,   0,1,0,
+    width + x, height + y, depth + z,   0,1,0,
+    -width + x, height + y,-depth + z,   0,1,0,
+
+    width + x,-height + y,-depth + z,   0,0,-1,
+    -width + x,-height + y,-depth + z,   0,0,-1,
+    width + x, height + y,-depth + z,   0,0,-1,
+    -width + x, height + y,-depth + z,   0,0,-1,
+    width + x, height + y,-depth + z,   0,0,-1,
+    -width + x,-height + y,-depth + z,   0,0,-1,
+
+    -width + x,-height + y, depth + z,   0,0,1,
+    width + x,-height + y, depth + z,   0,0,1,
+    width + x, height + y, depth + z,   0,0,1,
+    width + x, height + y, depth + z,   0,0,1,
+    -width + x, height + y, depth + z,   0,0,1,
+    -width + x,-height + y, depth + z,   0,0,1,
+  ]);
 }

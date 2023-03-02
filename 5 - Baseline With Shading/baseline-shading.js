@@ -1,17 +1,22 @@
-import {createLookAt, createMultiColorCube, createPerspective, createProgram} from '../helper-methods.js';
+import {
+  createCubeWithNormals,
+  createLookAt,
+  createPerspective,
+  createProgram
+} from '../helper-methods.js';
 
 const vertexShaderSrc = `#version 300 es
 
 layout(location=0) in vec4 aPosition;
-layout(location=1) in vec3 aColor;
+layout(location=1) in vec3 aNormal;
 
 uniform mat4 modelViewProjection;
 
-out vec3 vColor;
+out vec3 vNormal;
 
 void main()
 {
-    vColor = aColor;
+    vNormal = aNormal;
     gl_Position = modelViewProjection * aPosition;
 }`;
 
@@ -19,13 +24,20 @@ void main()
 const fragmentShaderSrc = `#version 300 es
 precision mediump float;
 
-in vec3 vColor;
+uniform vec3 uLightDirection;
+
+in vec3 vNormal;
 
 out vec3 fragColor;
 
+float ambientLight = 0.4;
+vec3 color = vec3(0.7, 0.7, 0.7);
+
 void main()
 {
-  fragColor = vColor;
+  vec3 normalizedNormal = normalize(vNormal);
+  float brightness = max(dot(uLightDirection, normalizedNormal), ambientLight);
+  fragColor = color * brightness;
 }`;
 
 
@@ -37,6 +49,12 @@ gl.useProgram(program);
 gl.enable(gl.DEPTH_TEST);
 
 const origin = new DOMPoint(0, 0, 0);
+
+// Setup Light
+const inverseLightDirection = new DOMPoint(-0.5, 2, -2);
+const lightDirectionLoc = gl.getUniformLocation(program,'uLightDirection');
+gl.uniform3fv(lightDirectionLoc, new Float32Array([inverseLightDirection.x, inverseLightDirection.y, inverseLightDirection.z]));
+
 
 // Set Camera MVP Matrix
 const cameraPosition = new DOMPoint(0.6, 0.6, 0.6);
@@ -51,8 +69,8 @@ gl.uniformMatrix4fv(projectionLoc, false, modelViewProjection.toFloat32Array());
 // Create cubes and bind their data
 const verticesPerCube = 6 * 6;
 const cubes = new Float32Array([
-  ...createMultiColorCube(1, 0.1, 1, 0, 0, 0),
-  ...createMultiColorCube(0.3, 0.5, 0.1, 0, 0, 0)
+  ...createCubeWithNormals(1, 0.1, 1, 0, 0, 0),
+  ...createCubeWithNormals(0.3, 0.5, 0.1, 0, 0, 0)
 ]);
 
 const vertexBuffer = gl.createBuffer();

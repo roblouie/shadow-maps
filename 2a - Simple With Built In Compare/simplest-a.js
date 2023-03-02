@@ -114,7 +114,7 @@ const projectionLoc = gl.getUniformLocation(program, 'modelViewProjection');
 gl.uniformMatrix4fv(projectionLoc, false, modelViewProjection.toFloat32Array());
 
 
-// Create cubes and set their data attributes
+// Create cubes and bind their data
 const verticesPerCube = 6 * 6;
 const cubes = new Float32Array([
   ...createMultiColorCube(1, 0.1, 1, 0, 0, 0),
@@ -147,7 +147,7 @@ gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, dept
 // Get access to the shadow map uniform so we can set it during draw
 const shadowMapLocation = gl.getUniformLocation(program, 'shadowMap');
 
-const draw = () => {
+function draw() {
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
   // Render shadow map to depth texture
@@ -163,6 +163,6 @@ const draw = () => {
   gl.uniform1i(shadowMapLocation, 0);
 
   gl.drawArrays(gl.TRIANGLES, 0, verticesPerCube * 2);
-};
+}
 
 draw();

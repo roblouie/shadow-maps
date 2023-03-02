@@ -75,13 +75,8 @@ float ambientLight = 0.5;
 void main()
 {
   vec4 positionFromLightPovInTexture = positionFromLightPov * 0.5 + 0.5;
-    bool inRange =
-      positionFromLightPovInTexture.x >= 0.0 &&
-      positionFromLightPovInTexture.x <= 1.0 &&
-      positionFromLightPovInTexture.y >= 0.0 &&
-      positionFromLightPovInTexture.y <= 1.0;
   float litPercent = positionFromLightPovInTexture.z < texture(shadowMap, positionFromLightPovInTexture.xy).r ? 1.0 : ambientLight;
-  fragColor = vColor * (inRange ? litPercent : 1.0);
+  fragColor = vColor * litPercent;
 }`;
 
 
@@ -140,7 +135,7 @@ gl.enableVertexAttribArray(1);
 const depthTextureSize = new DOMPoint(1024, 1024);
 const depthTexture = gl.createTexture();
 gl.bindTexture(gl.TEXTURE_2D, depthTexture);
-gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT32F, depthTextureSize.x, depthTextureSize.y, 0, gl.DEPTH_COMPONENT, gl.FLOAT, null);
+gl.texStorage2D(gl.TEXTURE_2D, 1, gl.DEPTH_COMPONENT32F, depthTextureSize.x, depthTextureSize.y);
 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
@@ -153,7 +148,7 @@ gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, dept
 // Get access to the shadow map uniform so we can set it during draw
 const shadowMapLocation = gl.getUniformLocation(program, 'shadowMap');
 
-const draw = () => {
+function draw() {
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
   // Render shadow map to depth texture
@@ -169,6 +164,6 @@ const draw = () => {
   gl.uniform1i(shadowMapLocation, 0);
 
   gl.drawArrays(gl.TRIANGLES, 0, verticesPerCube * 2);
-};
+}
 
 draw();
