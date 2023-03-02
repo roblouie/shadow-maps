@@ -1,3 +1,4 @@
+// THIS APPROACH IS NOT RECOMMENDED
 
 // The vertex shader for creating the depth texture takes in an array of vertex positions just like the
 // regular render shader. Like a regular render shader, it also takes in a mvp matrix. The difference is that here
@@ -44,7 +45,7 @@ out vec4 vColor;
 out vec4 positionFromLightPov;
 
 void main()
-{
+{     
     vColor = aColor;
     gl_Position = modelViewProjection * aPosition;
     positionFromLightPov = lightPovMvp * aPosition;
@@ -74,8 +75,13 @@ float ambientLight = 0.5;
 void main()
 {
   vec4 positionFromLightPovInTexture = positionFromLightPov * 0.5 + 0.5;
+    bool inRange =
+      positionFromLightPovInTexture.x >= 0.0 &&
+      positionFromLightPovInTexture.x <= 1.0 &&
+      positionFromLightPovInTexture.y >= 0.0 &&
+      positionFromLightPovInTexture.y <= 1.0;
   float litPercent = positionFromLightPovInTexture.z < texture(shadowMap, positionFromLightPovInTexture.xy).r ? 1.0 : ambientLight;
-  fragColor = vColor * litPercent;
+  fragColor = vColor * (inRange ? litPercent : 1.0);
 }`;
 
 
@@ -89,8 +95,8 @@ gl.enable(gl.DEPTH_TEST);
 const origin = new DOMPoint(0, 0, 0);
 
 // Set Light MVP Matrix
-const inverseLightDirection = new DOMPoint(0.5, 2, -2);
-const lightPovProjection = createOrtho(-1,1,-1,1,-1,4);
+const inverseLightDirection = new DOMPoint(-0.5, 2, -2);
+const lightPovProjection = createOrtho(-1,1,-1,1,0,4);
 const lightPovView = createLookAt(inverseLightDirection, origin);
 const lightPovMvp = lightPovProjection.multiply(lightPovView);
 
@@ -116,7 +122,7 @@ gl.uniformMatrix4fv(projectionLoc, false, modelViewProjection.toFloat32Array());
 // Create cubes and set their data attributes
 const verticesPerCube = 6 * 6;
 const cubes = new Float32Array([
-  ...createMultiColorCube(1, 1, 1, 0, -1, 0),
+  ...createMultiColorCube(1, 0.1, 1, 0, 0, 0),
   ...createMultiColorCube(0.3, 0.5, 0.1, 0, 0, 0)
 ]);
 
@@ -131,7 +137,7 @@ gl.enableVertexAttribArray(1);
 
 
 // Depth Texture
-const depthTextureSize = new DOMPoint(512, 512);
+const depthTextureSize = new DOMPoint(1024, 1024);
 const depthTexture = gl.createTexture();
 gl.bindTexture(gl.TEXTURE_2D, depthTexture);
 gl.texImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT32F, depthTextureSize.x, depthTextureSize.y, 0, gl.DEPTH_COMPONENT, gl.FLOAT, null);

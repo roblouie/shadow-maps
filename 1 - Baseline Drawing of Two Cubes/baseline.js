@@ -3,11 +3,11 @@ import {createLookAt, createMultiColorCube, createOrtho, createPerspective, crea
 const vertexShaderSrc = `#version 300 es
 
 layout(location=0) in vec4 aPosition;
-layout(location=1) in vec4 aColor;
+layout(location=1) in vec3 aColor;
 
 uniform mat4 modelViewProjection;
 
-out vec4 vColor;
+out vec3 vColor;
 
 void main()
 {
@@ -19,9 +19,9 @@ void main()
 const fragmentShaderSrc = `#version 300 es
 precision mediump float;
 
-in vec4 vColor;
+in vec3 vColor;
 
-out vec4 fragColor;
+out vec3 fragColor;
 
 void main()
 {
@@ -51,7 +51,7 @@ gl.uniformMatrix4fv(projectionLoc, false, modelViewProjection.toFloat32Array());
 // Create cubes and bind their data
 const verticesPerCube = 6 * 6;
 const cubes = new Float32Array([
-  ...createMultiColorCube(1, 1, 1, 0, -1, 0),
+  ...createMultiColorCube(1, 0.1, 1, 0, 0, 0),
   ...createMultiColorCube(0.3, 0.5, 0.1, 0, 0, 0)
 ]);
 
