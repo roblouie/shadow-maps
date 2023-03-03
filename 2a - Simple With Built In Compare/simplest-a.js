@@ -19,10 +19,10 @@ void main(){
 const depthFragmentShader = `#version 300 es
 precision mediump float;
 
-out float fragmentdepth;
+out float fragDepth;
 
 void main(){
- fragmentdepth = gl_FragCoord.z;
+ fragDepth = gl_FragCoord.z;
 }
 `;
 
@@ -82,12 +82,12 @@ void main()
 
 const gl = document.querySelector('canvas').getContext('webgl2');
 
-const program = createProgram(gl, vertexShaderSrc, fragmentShaderSrc);
-const depthProgram = createProgram(gl, depthVertexShader, depthFragmentShader);
-
 gl.enable(gl.DEPTH_TEST);
 
 const origin = new DOMPoint(0, 0, 0);
+
+const program = createProgram(gl, vertexShaderSrc, fragmentShaderSrc);
+const depthProgram = createProgram(gl, depthVertexShader, depthFragmentShader);
 
 // Set Light MVP Matrix
 const inverseLightDirection = new DOMPoint(-0.5, 2, -2);
