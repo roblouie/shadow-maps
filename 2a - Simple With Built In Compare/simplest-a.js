@@ -53,8 +53,8 @@ float ambientLight = 0.5;
 
 void main()
 {
-  vec3 positionFromLightPovInTexture = positionFromLightPov.xyz * 0.5 + 0.5;
-  float hitByLight = texture(shadowMap, positionFromLightPovInTexture);
+  vec3 lightPovPositionInTexture = positionFromLightPov.xyz * 0.5 + 0.5;
+  float hitByLight = texture(shadowMap, lightPovPositionInTexture);
   float litPercent = max(hitByLight, ambientLight);
   fragColor = vColor * litPercent;
 }`;

@@ -53,9 +53,9 @@ float ambientLight = 0.5;
 
 void main()
 {
-  vec4 positionFromLightInTexture = positionFromLightPov * 0.5 + 0.5;
+  vec4 lightPovPositionInTexture = positionFromLightPov * 0.5 + 0.5;
   float bias = 0.004;
-  vec3 biased = vec3(positionFromLightInTexture.xy, positionFromLightInTexture.z - bias);
+  vec3 biased = vec3(lightPovPositionInTexture.xy, lightPovPositionInTexture.z - bias);
   float hitByLight = texture(shadowMap, biased);
   float litPercent = max(hitByLight, ambientLight);
   fragColor = vColor * litPercent;
