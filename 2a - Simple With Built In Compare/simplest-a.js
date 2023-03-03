@@ -136,12 +136,12 @@ function draw() {
   gl.viewport(0, 0, depthTextureSize.x, depthTextureSize.y);
   gl.drawArrays(gl.TRIANGLES, 0, verticesPerCube * 2);
 
+  // Set depth texture and render scene to canvas
   gl.useProgram(program);
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
   gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
   gl.bindTexture(gl.TEXTURE_2D, depthTexture);
   gl.uniform1i(shadowMapLocation, 0);
-
   gl.drawArrays(gl.TRIANGLES, 0, verticesPerCube * 2);
 }
 
