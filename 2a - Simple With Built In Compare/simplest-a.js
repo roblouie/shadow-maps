@@ -1,7 +1,3 @@
-
-// The vertex shader for creating the depth texture takes in an array of vertex positions just like the
-// regular render shader. Like a regular render shader, it also takes in a mvp matrix. The difference is that here
-// the mvp is an orthographic projection pointing the direction of the directional light.
 import {createLookAt, createMultiColorCube, createOrtho, createPerspective, createProgram} from '../helper-methods.js';
 
 const depthVertexShader = `#version 300 es
@@ -15,7 +11,6 @@ void main(){
 }
 `;
 
-// The fragment shader for creating the depth texture outputs the z position of each pixel. This creates the depth texture.
 const depthFragmentShader = `#version 300 es
 precision mediump float;
 
@@ -26,12 +21,6 @@ void main(){
 }
 `;
 
-// The main rendering vertex shader takes in positions and colors for the vertices and an mvp matrix, and output the
-// color and transformed positions to the fragment shader. All that is identical to a shader that only renders different
-// colored shapes. The only additions here are the depthMvp and the shadowPosition output. The depthMvp is simply the
-// same mvp matrix from the depth vertex shader. We need this to get the vertex position from the point of view of the
-// light. Just like the positions from the camera point of view are output to gl_Position, the positions from the light
-// point of view are output to shadowPosition
 const vertexShaderSrc = `#version 300 es
 
 layout(location=0) in vec4 aPosition;
@@ -50,15 +39,6 @@ void main()
     positionFromLightPov = lightPovMvp * aPosition;
 }`;
 
-// If you looked out from a source of light, all of the objects you can see would appear in light. Anything behind those
-// objects, however, would be in shadow. With the current pixels position from the point of view of the light and the
-// depth texture we can now determine this. Remember though that pixels in clip space go from -1 to 1, where pixels
-// in texture space go from 0 to 1. So in order to find the matching pixel in our depth texture, we multiply by 0.5 then
-// add 0.5. This converts from (-1, 1) to (0, 1). Now we check that, from the point of view of the light, is the current
-// pixel closer to the light than the matching pixel in the depth texture. If so, it's in the light. If the current
-// pixel is farther away than the matching pixel in the depth texture, that means something was rendered between it
-// and the light, so it is in a shadow.
-// To apply the shadow, we check that and multiply the output color by either 1.0 (fully lit) or (0.5) in the shadow.
 const fragmentShaderSrc = `#version 300 es
 precision mediump float;
 
