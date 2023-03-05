@@ -67,8 +67,8 @@ void main()
 {
   for (int i = 0; i < 5; i++) {
     vec3 biased = vec3(positionFromLightPov.xy + adjacentPixels[i]/shadowSpread, positionFromLightPov.z - bias);
-    float litPercent = texture(shadowMap, biased);
-    visibility *= max(litPercent, 0.87);
+    float hitByLight = texture(shadowMap, biased);
+    visibility *= max(hitByLight, 0.87);
   }
   
   fragColor = vColor * visibility;

@@ -141,19 +141,19 @@ export function createMultiColorCube(width, height, depth, x, y, z) {
 export function createCubeWithNormals(width, height, depth, x, y, z) {
   return new Float32Array([
     //    X           Y          Z         Normal
-    -width + x,-height + y,-depth + z,   1,0,0,
-    -width + x, height + y, depth + z,   1,0,0,
-    -width + x, height + y,-depth + z,   1,0,0,
-    -width + x, -height + y, depth + z,   1,0,0,
-    -width + x, height + y, depth + z,   1,0,0,
-    -width + x,-height + y,-depth + z,   1,0,0,
+    -width + x,-height + y,-depth + z,   -1,0,0,
+    -width + x, height + y, depth + z,   -1,0,0,
+    -width + x, height + y,-depth + z,   -1,0,0,
+    -width + x, -height + y, depth + z,   -1,0,0,
+    -width + x, height + y, depth + z,   -1,0,0,
+    -width + x,-height + y,-depth + z,   -1,0,0,
 
-    width + x ,-height + y,-depth + z,   -1,0,0,
-    width + x , height + y,-depth + z,   -1,0,0,
-    width + x , height + y, depth + z,   -1,0,0,
-    width + x , height + y, depth + z,   -1,0,0,
-    width + x ,-height + y, depth + z,   -1,0,0,
-    width + x ,-height + y,-depth + z,   -1,0,0,
+    width + x ,-height + y,-depth + z,   1,0,0,
+    width + x , height + y,-depth + z,   1,0,0,
+    width + x , height + y, depth + z,   1,0,0,
+    width + x , height + y, depth + z,   1,0,0,
+    width + x ,-height + y, depth + z,   1,0,0,
+    width + x ,-height + y,-depth + z,   1,0,0,
 
     -width + x,-height + y,-depth + z,   0,-1,0,
     width + x,-height + y,-depth + z,   0,-1,0,

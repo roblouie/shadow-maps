@@ -2,7 +2,7 @@ import {
   createCubeWithNormals,
   createLookAt,
   createPerspective,
-  createProgram
+  createProgram, normalize
 } from '../helper-methods.js';
 
 const vertexShaderSrc = `#version 300 es
@@ -30,8 +30,8 @@ in vec3 vNormal;
 
 out vec3 fragColor;
 
-float ambientLight = 0.4;
-vec3 color = vec3(0.7, 0.7, 0.7);
+float ambientLight = 0.3;
+vec3 color = vec3(1.0, 1.0, 1.0);
 
 void main()
 {
@@ -51,7 +51,7 @@ gl.enable(gl.DEPTH_TEST);
 const origin = new DOMPoint(0, 0, 0);
 
 // Setup Light
-const inverseLightDirection = new DOMPoint(-0.5, 2, -2);
+const inverseLightDirection = normalize(new DOMPoint(-0.5, 2, -2));
 const lightDirectionLoc = gl.getUniformLocation(program,'uLightDirection');
 gl.uniform3fv(lightDirectionLoc, new Float32Array([inverseLightDirection.x, inverseLightDirection.y, inverseLightDirection.z]));
 
