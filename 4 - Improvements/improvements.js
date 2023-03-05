@@ -14,10 +14,10 @@ void main(){
 const depthFragmentShader = `#version 300 es
 precision mediump float;
 
-out float fragmentdepth;
+out float fragDepth;
 
 void main(){
- fragmentdepth = gl_FragCoord.z;
+ fragDepth = gl_FragCoord.z;
 }
 `;
 
@@ -77,13 +77,13 @@ void main()
 
 const gl = document.querySelector('canvas').getContext('webgl2');
 
-const program = createProgram(gl, vertexShaderSrc, fragmentShaderSrc);
-const depthProgram = createProgram(gl, depthVertexShader, depthFragmentShader);
-
 gl.enable(gl.DEPTH_TEST);
 gl.enable(gl.CULL_FACE);
 
 const origin = new DOMPoint(0, 0, 0);
+
+const program = createProgram(gl, vertexShaderSrc, fragmentShaderSrc);
+const depthProgram = createProgram(gl, depthVertexShader, depthFragmentShader);
 
 // Set Light MVP Matrix
 const inverseLightDirection = new DOMPoint(-0.5, 2, -2);
@@ -117,7 +117,7 @@ const projectionLoc = gl.getUniformLocation(program, 'modelViewProjection');
 gl.uniformMatrix4fv(projectionLoc, false, modelViewProjection.toFloat32Array());
 
 
-// Create cubes and set their data attributes
+// Create cubes and bind their data
 const verticesPerCube = 6 * 6;
 const cubes = new Float32Array([
   ...createMultiColorCube(1, 0.1, 1, 0, 0, 0),
@@ -159,6 +159,7 @@ function draw() {
   gl.viewport(0, 0, depthTextureSize.x, depthTextureSize.y);
   gl.drawArrays(gl.TRIANGLES, 0, verticesPerCube * 2);
 
+  // Set depth texture and render scene to canvas
   gl.useProgram(program);
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
   gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
