@@ -2,7 +2,7 @@ import {
   createCubeWithNormals,
   createLookAt, createOrtho,
   createPerspective,
-  createProgram
+  createProgram, normalize
 } from '../helper-methods.js';
 
 const depthVertexShader = `#version 300 es
@@ -57,7 +57,7 @@ uniform mediump sampler2DShadow shadowMap;
 
 out vec3 fragColor;
 
-float ambientLight = 0.4;
+float ambientLight = 0.2;
 
 vec2 adjacentPixels[4] = vec2[](
   vec2(-1, 0), 
@@ -66,7 +66,7 @@ vec2 adjacentPixels[4] = vec2[](
   vec2(0, -1)
 );
 
-vec3 color = vec3(0.7, 0.7, 0.7);
+vec3 color = vec3(1.0, 1.0, 1.0);
 
 float visibility = 1.0;
 float shadowSpread = 1100.0;
@@ -75,8 +75,7 @@ void main()
 {
   vec3 normalizedNormal = normalize(vNormal);
   float lightSurfaceCosine = dot(uLightDirection, normalizedNormal);
-  float lightSurfaceAngle = acos(lightSurfaceCosine);
-  float lightCos = max(lightSurfaceCosine, 0.0);
+  float brightness = max(lightSurfaceCosine, 0.0);
   
   for (int i = 0; i < 4; i++) {
     vec3 biased = vec3(positionFromLightPov.xy + adjacentPixels[i]/shadowSpread, positionFromLightPov.z);
@@ -84,7 +83,6 @@ void main()
     visibility *= max(hitByLight, 0.83);
   }
   
-  float brightness = max(lightCos, ambientLight);
   fragColor = color * max(brightness * visibility, ambientLight);
 }`;
 
@@ -101,7 +99,7 @@ const origin = new DOMPoint(0, 0, 0);
 
 // Setup Light
 gl.useProgram(program);
-const inverseLightDirection = new DOMPoint(-0.0, 1, -0.5);
+const inverseLightDirection = normalize(new DOMPoint(-0.0, 1, -0.5));
 const lightDirectionLoc = gl.getUniformLocation(program,'uLightDirection');
 gl.uniform3fv(lightDirectionLoc, new Float32Array([inverseLightDirection.x, inverseLightDirection.y, inverseLightDirection.z]));
 const lightPovProjection = createOrtho(-1,1,-1,1,0,5);
@@ -188,7 +186,6 @@ function draw(time) {
   inverseLightDirection.x = (Math.cos(lightRotationAngles.x) * 1);
   inverseLightDirection.y = Math.abs(Math.sin(lightRotationAngles.y) * 2);
   inverseLightDirection.z = (Math.sin(lightRotationAngles.z) * 1);
-  debug.innerHTML = inverseLightDirection.x + ' ' + inverseLightDirection.y;
 
   gl.uniform3fv(lightDirectionLoc, new Float32Array([inverseLightDirection.x, inverseLightDirection.y, inverseLightDirection.z]));
 
