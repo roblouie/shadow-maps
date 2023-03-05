@@ -69,15 +69,14 @@ vec2 adjacentPixels[5] = vec2[](
 
 vec3 color = vec3(1.0, 1.0, 1.0);
 
-float bias = 0.002;
 float visibility = 1.0;
 float shadowSpread = 800.0;
 
 void main()
 {
   for (int i = 0; i < 5; i++) {
-    vec3 biased = vec3(positionFromLightPov.xy + adjacentPixels[i]/shadowSpread, positionFromLightPov.z - bias);
-    float hitByLight = texture(shadowMap, biased);
+    vec3 samplePosition = vec3(positionFromLightPov.xy + adjacentPixels[i]/shadowSpread, positionFromLightPov.z);
+    float hitByLight = texture(shadowMap, samplePosition);
     visibility *= max(hitByLight, 0.87);
   }
   
@@ -90,13 +89,13 @@ void main()
 
 const gl = document.querySelector('canvas').getContext('webgl2');
 
+const program = createProgram(gl, vertexShaderSrc, fragmentShaderSrc);
+const depthProgram = createProgram(gl, depthVertexShader, depthFragmentShader);
+
 gl.enable(gl.DEPTH_TEST);
 gl.enable(gl.CULL_FACE);
 
 const origin = new DOMPoint(0, 0, 0);
-
-const program = createProgram(gl, vertexShaderSrc, fragmentShaderSrc);
-const depthProgram = createProgram(gl, depthVertexShader, depthFragmentShader);
 
 // Setup Light
 gl.useProgram(program);
@@ -171,12 +170,14 @@ function draw() {
 
   // Render shadow map to depth texture
   gl.useProgram(depthProgram);
+  gl.cullFace(gl.FRONT);
   gl.bindFramebuffer(gl.FRAMEBUFFER, depthFramebuffer);
   gl.viewport(0, 0, depthTextureSize.x, depthTextureSize.y);
   gl.drawArrays(gl.TRIANGLES, 0, verticesPerCube * 2);
 
   // Set depth texture and render scene to canvas
   gl.useProgram(program);
+  gl.cullFace(gl.BACK);
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
   gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
   gl.bindTexture(gl.TEXTURE_2D, depthTexture);

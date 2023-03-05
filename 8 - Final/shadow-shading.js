@@ -73,16 +73,15 @@ float shadowSpread = 1100.0;
 
 void main()
 {
-  vec3 normalizedNormal = normalize(vNormal);
-  float lightSurfaceCosine = dot(uLightDirection, normalizedNormal);
-  float brightness = max(lightSurfaceCosine, 0.0);
-  
   for (int i = 0; i < 4; i++) {
     vec3 biased = vec3(positionFromLightPov.xy + adjacentPixels[i]/shadowSpread, positionFromLightPov.z);
     float hitByLight = texture(shadowMap, biased);
     visibility *= max(hitByLight, 0.83);
   }
   
+  vec3 normalizedNormal = normalize(vNormal);
+  float lightCos = dot(uLightDirection, normalizedNormal);
+  float brightness = max(lightCos * visibility, ambientLight);
   fragColor = color * max(brightness * visibility, ambientLight);
 }`;
 
@@ -187,7 +186,9 @@ function draw(time) {
   inverseLightDirection.y = Math.abs(Math.sin(lightRotationAngles.y) * 2);
   inverseLightDirection.z = (Math.sin(lightRotationAngles.z) * 1);
 
-  gl.uniform3fv(lightDirectionLoc, new Float32Array([inverseLightDirection.x, inverseLightDirection.y, inverseLightDirection.z]));
+  const normalizedDirection = normalize(inverseLightDirection)
+
+  gl.uniform3fv(lightDirectionLoc, new Float32Array([normalizedDirection.x, normalizedDirection.y, normalizedDirection.z]));
 
   const lightPovView = createLookAt(inverseLightDirection, origin);
   const lightPovMvp = lightPovProjection.multiply(lightPovView);
@@ -224,7 +225,7 @@ function draw(time) {
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
   gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
   gl.bindTexture(gl.TEXTURE_2D, depthTexture);
-  gl.uniform1i(shadowMapLocation, 0);  gl.cullFace(gl.FRONT);
+  gl.uniform1i(shadowMapLocation, 0);
   gl.cullFace(gl.BACK);
   gl.drawArrays(gl.TRIANGLES, 0, verticesPerCube * numberOfCubes);
 

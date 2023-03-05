@@ -30,13 +30,14 @@ in vec3 vNormal;
 
 out vec3 fragColor;
 
-float ambientLight = 0.3;
+float ambientLight = 0.2;
 vec3 color = vec3(1.0, 1.0, 1.0);
 
 void main()
 {
   vec3 normalizedNormal = normalize(vNormal);
-  float brightness = max(dot(uLightDirection, normalizedNormal), ambientLight);
+  float lightCos = dot(uLightDirection, normalizedNormal);
+  float brightness = max(lightCos, ambientLight);
   fragColor = color * brightness;
 }`;
 
