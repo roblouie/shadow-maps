@@ -101,7 +101,7 @@ gl.useProgram(program);
 const inverseLightDirection = normalize(new DOMPoint(-0.0, 1, -0.5));
 const lightDirectionLoc = gl.getUniformLocation(program,'uLightDirection');
 gl.uniform3fv(lightDirectionLoc, new Float32Array([inverseLightDirection.x, inverseLightDirection.y, inverseLightDirection.z]));
-const lightPovProjection = createOrtho(-1,1,-1,1,0,5);
+const lightPovProjection = createOrtho(-1,1,-1,1,0,6);
 const lightPovView = createLookAt(inverseLightDirection, origin);
 const lightPovMvp = lightPovProjection.multiply(lightPovView);
 
@@ -130,11 +130,15 @@ gl.uniformMatrix4fv(projectionLoc, false, modelViewProjection.toFloat32Array());
 
 // Create cubes and bind their data
 const verticesPerCube = 6 * 6;
-const numberOfCubes = 3;
+const numberOfCubes = 6;
 const cubes = new Float32Array([
   ...createCubeWithNormals(1, 0.1, 1, 0, 0, 0),
-  ...createCubeWithNormals(0.1, 0.4, 0.1, 0, 0.2, 0),
-  ...createCubeWithNormals(0.4, 0.2, 0.1, 0.3, 0.2, -0.3)
+  ...createCubeWithNormals(0.1, 0.4, 0.1, 0, 0.2, 0.2),
+  ...createCubeWithNormals(0.4, 0.3, 0.1, 0.3, 0.2, -0.4),
+  ...createCubeWithNormals(0.1, 0.2, 0.4, -0.5, 0.2, -0.3),
+  ...createCubeWithNormals(0.02, 0.5, 0.02, 0.5, 0.2, 0.5),
+  ...createCubeWithNormals(0.1, 0.1, 0.1, 0.4, 0.2, -0.7),
+
 ]);
 
 const vertexBuffer = gl.createBuffer();
@@ -171,8 +175,8 @@ const lightRiseSetRate = 0.05;
 
 const cameraRotationAngles = new DOMPoint();
 const cameraSpinRate = 0.1;
-
-const debug = document.querySelector('#debug');
+let cameraZoom = 1;
+const cameraZoomRate = 0.1;
 
 function draw(time) {
   const interval = (time - previousTime) / 1000;
@@ -211,9 +215,13 @@ function draw(time) {
   gl.useProgram(program);
 
   cameraRotationAngles.x -= cameraSpinRate * interval;
+  cameraRotationAngles.y -= cameraSpinRate * interval;
   cameraRotationAngles.z -= cameraSpinRate * interval;
-  cameraPosition.x = (Math.cos(cameraRotationAngles.x) * 1);
-  cameraPosition.z = (Math.sin(cameraRotationAngles.z) * 1);
+  cameraZoom += cameraZoomRate * interval;
+  const zoomPos = clamp(Math.sin(cameraZoom) * -2, -2, -1.2);
+  cameraPosition.x = (Math.cos(cameraRotationAngles.x) * zoomPos);
+  cameraPosition.y = Math.abs(Math.cos(cameraRotationAngles.y) * 0.2) + 0.5;
+  cameraPosition.z = (Math.sin(cameraRotationAngles.z) * zoomPos);
   const view = createLookAt(cameraPosition, origin);
   const modelViewProjection = projection.multiply(view);
   gl.uniformMatrix4fv(projectionLoc, false, modelViewProjection.toFloat32Array());
@@ -233,3 +241,7 @@ function draw(time) {
 }
 
 draw(0);
+
+function clamp(num, min, max) {
+  return Math.min(Math.max(num, min), max);
+}
