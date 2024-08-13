@@ -21,12 +21,12 @@ void main(){
 const depthFragmentShader = `#version 300 es
 precision mediump float;
 
-vec4 lightWorldPos = vec4(0.0, 0.0, 0.0, 0.0);
+in vec3 vColor;
+
 out float fragDepth;
 
 void main(){
-  vec4 lightToVertex = gl_FragCoord - lightWorldPos;
- fragDepth = length(lightToVertex);
+ fragDepth = gl_FragCoord.z;
 }
 `;
 
@@ -101,8 +101,8 @@ gl.uniformMatrix4fv(projectionLoc, false, modelViewProjection.toFloat32Array());
 // Create cubes and bind their data
 const verticesPerCube = 6 * 6;
 const cubes = new Float32Array([
-  ...createMultiColorCube(5, 0.1, 5, 0, -1, 0),
-  ...createMultiColorCube(0.3, 0.5, 0.1, 0, -1, 0)
+  ...createMultiColorCube(1, 0.1, 1, 0, -0.5, 0),
+  ...createMultiColorCube(0.3, 0.5, 0.1, -0.5, -0.3, 0)
 ]);
 
 const vertexBuffer = gl.createBuffer();
@@ -139,8 +139,8 @@ gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_CUBE_MAP
 const shadowMapLocation = gl.getUniformLocation(program, 'shadowMap');
 
 const cubeSides = [
-{ face: gl.TEXTURE_CUBE_MAP_POSITIVE_X, target: new DOMPoint(1.0, 0.0, 0.0),  up: new DOMPoint(0.0, -1.0, 0.0) },
-{ face: gl.TEXTURE_CUBE_MAP_NEGATIVE_X, target: new DOMPoint(-1., 0.0, 0.0), up: new DOMPoint(0.0, -1.0, 0.0) },
+{ face: gl.TEXTURE_CUBE_MAP_POSITIVE_X, target: new DOMPoint(1.0, 0.0, 0.0),  up: new DOMPoint(0.0, 1.0, 0.0) },
+{ face: gl.TEXTURE_CUBE_MAP_NEGATIVE_X, target: new DOMPoint(-1., 0.0, 0.0), up: new DOMPoint(0.0, 1.0, 0.0) },
 { face: gl.TEXTURE_CUBE_MAP_POSITIVE_Y, target: new DOMPoint(0.0, 1.0, 0.0),  up: new DOMPoint(0.0, 0.0, 1.0) },
 { face: gl.TEXTURE_CUBE_MAP_NEGATIVE_Y, target: new DOMPoint(0.0, -1.0, 0.0), up: new DOMPoint(0.0, 0.0, -1.0) },
 { face: gl.TEXTURE_CUBE_MAP_POSITIVE_Z, target: new DOMPoint(0.0, 0.0, 1.0),  up: new DOMPoint(0.0, -1.0, 0.0) },
@@ -154,19 +154,21 @@ function draw() {
   // Render shadow map to depth texture
   gl.useProgram(depthProgram);
   gl.bindFramebuffer(gl.FRAMEBUFFER, depthFramebuffer);
+  // gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
   gl.viewport(0, 0, depthTextureSize.x, depthTextureSize.y);
   const lightPos = new DOMPoint(0, 0, 0);
-  const lightProjection = createPerspective(Math.PI / 2, 1)
+  const lightProjection = createPerspective(Math.PI / 2, 1, 0.1, 1000)
   const lightMvpLocation = gl.getUniformLocation(depthProgram, 'modelViewProjection');
 
 
-  cubeSides.forEach(side => {
-    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, side.face, depthTexture, 0);
-    const lightView = createLookAt(lightPos, side.target, side.up);
+  // cubeSides.forEach(side => {
+  //   gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, cubeSides[0].face, depthTexture, 0);
+    const lightView = createLookAt(lightPos, cubeSides[1].target, cubeSides[1].up);
     const lightMvp = lightProjection.multiply(lightView);
     gl.uniformMatrix4fv(lightMvpLocation, false, lightMvp.toFloat32Array());
     gl.drawArrays(gl.TRIANGLES, 0, verticesPerCube * 2);
-  });
+  // });
 
 
   // Set depth texture and render scene to canvas
