@@ -87,6 +87,8 @@ void main()
 }`;
 
 
+const lightPosition = DOMPoint(1, 3, 1);
+
 const gl = document.querySelector('canvas').getContext('webgl2');
 
 const program = createProgram(gl, vertexShaderSrc, fragmentShaderSrc);

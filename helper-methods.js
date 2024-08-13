@@ -1,4 +1,6 @@
 // Boilerplate code for creating a WebGL program
+import {EnhancedDOMPoint} from "./enhanced-dom-point.js";
+
 export function createProgram(gl, vertexShaderText, fragmentShaderText) {
   const program = gl.createProgram();
 
@@ -57,6 +59,21 @@ export function createLookAt(position, target, up = { x: 0, y: 1, z: 0}) {
     xAxis.y, yAxis.y, invertedZ.y, 0,
     xAxis.z, yAxis.z, invertedZ.z, 0,
     -dotVectors(xAxis, position), -dotVectors(yAxis, position), -dotVectors(invertedZ, position), 1,
+  ]);
+}
+
+export function createLookAt2(position, target, up = { x: 0, y: 1, z: 0}) {
+  const forward = new EnhancedDOMPoint().subtractVectors(target, position).normalize_();
+  const right = new EnhancedDOMPoint().crossVectors(forward, up).normalize_();
+  const lookAtUp = new EnhancedDOMPoint().crossVectors(right, forward);
+
+  const invertedZ = new EnhancedDOMPoint(forward.x * -1, forward.y * -1, forward.z * -1);
+
+  return new DOMMatrix([
+    right.x, lookAtUp.x, invertedZ.x, 0,
+    right.y, lookAtUp.y, invertedZ.y, 0,
+    right.z, lookAtUp.z, invertedZ.z, 0,
+    -right.dot(position), -lookAtUp.dot(position), -invertedZ.dot(position), 1,
   ]);
 }
 
