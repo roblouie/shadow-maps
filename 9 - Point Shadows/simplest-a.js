@@ -141,10 +141,10 @@ const shadowMapLocation = gl.getUniformLocation(program, 'shadowMap');
 const cubeSides = [
 { face: gl.TEXTURE_CUBE_MAP_POSITIVE_X, target: new DOMPoint(1.0, 0.0, 0.0),  up: new DOMPoint(0.0, -1.0, 0.0) },
 { face: gl.TEXTURE_CUBE_MAP_NEGATIVE_X, target: new DOMPoint(-1., 0.0, 0.0), up: new DOMPoint(0.0, -1.0, 0.0) },
-{ face: gl.TEXTURE_CUBE_MAP_POSITIVE_Y, target: new DOMPoint(0.0, 1.0, 0.0),  up: new DOMPoint(0.0, 0.0, -1.0) },
-{ face: gl.TEXTURE_CUBE_MAP_NEGATIVE_Y, target: new DOMPoint(0.0, -1.0, 0.0), up: new DOMPoint(0.0, 0.0, 1.0) },
-{ face: gl.TEXTURE_CUBE_MAP_POSITIVE_Z, target: new DOMPoint(0.0, 0.0, 1.0),  up: new DOMPoint(0.0, 1.0, 0.0) },
-{ face: gl.TEXTURE_CUBE_MAP_NEGATIVE_Z, target: new DOMPoint(0.0, 0.0, -1.0), up: new DOMPoint(0.0, 1.0, 0.0) }
+{ face: gl.TEXTURE_CUBE_MAP_POSITIVE_Y, target: new DOMPoint(0.0, 1.0, 0.0),  up: new DOMPoint(0.0, 0.0, 1.0) },
+{ face: gl.TEXTURE_CUBE_MAP_NEGATIVE_Y, target: new DOMPoint(0.0, -1.0, 0.0), up: new DOMPoint(0.0, 0.0, -1.0) },
+{ face: gl.TEXTURE_CUBE_MAP_POSITIVE_Z, target: new DOMPoint(0.0, 0.0, 1.0),  up: new DOMPoint(0.0, -1.0, 0.0) },
+{ face: gl.TEXTURE_CUBE_MAP_NEGATIVE_Z, target: new DOMPoint(0.0, 0.0, -1.0), up: new DOMPoint(0.0, -1.0, 0.0) }
 ];
 
 
