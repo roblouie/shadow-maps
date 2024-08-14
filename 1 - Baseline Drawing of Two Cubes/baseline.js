@@ -52,7 +52,8 @@ gl.uniformMatrix4fv(projectionLoc, false, modelViewProjection.toFloat32Array());
 const verticesPerCube = 6 * 6;
 const cubes = new Float32Array([
   ...createMultiColorCube(1, 0.1, 1, 0, 0, 0),
-  ...createMultiColorCube(0.3, 0.5, 0.1, 0, 0, 0)
+  ...createMultiColorCube(0.3, 0.5, 0.1, 0, 0, 0),
+  ...createMultiColorCube(0.1, 0.5, 0.1, 1, 1, 0),
 ]);
 
 const vertexBuffer = gl.createBuffer();
