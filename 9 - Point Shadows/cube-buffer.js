@@ -1,23 +1,49 @@
-export function createShadowMapCubemap(gl, size) {
-  const texture = gl.createTexture();
-  gl.bindTexture(gl.TEXTURE_CUBE_MAP, texture);
 
-  for (let i = 0; i < 6; i++) {
-    gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, gl.DEPTH_COMPONENT24,
-      size, size, 0, gl.DEPTH_COMPONENT, gl.UNSIGNED_INT, null);
+export class ShadowCubeMapFbo {
+  constructor(size, gl) {
+    this.size = size;
+
+    // Create the depth buffer
+    this.depthTexture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, this.depthTexture);
+    gl.texStorage2D(gl.TEXTURE_2D, 1, gl.DEPTH_COMPONENT32F, size, size);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    // gl.bindTexture(gl.TEXTURE_2D, 0); ?? DOESN"T WORK
+
+    // Create the cube map
+    this.cubeMapTexture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_CUBE_MAP, this.cubeMapTexture);
+    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_R, gl.CLAMP_TO_EDGE);
+
+    for (let i = 0; i < 6; i++) {
+      gl.texImage2D(gl.TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, gl.RGBA, size, size, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+    }
+
+    this.depthFramebuffer = gl.createFramebuffer();
+    gl.bindFramebuffer(gl.FRAMEBUFFER, this.depthFramebuffer);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, this.depthTexture, 0);
   }
 
-  gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-  gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-  gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-  gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_R, gl.CLAMP_TO_EDGE);
+  bindForWriting(faceIndex, gl) {
+    const sides = getSides(gl);
 
-  // Enable depth comparison for shadow mapping
-  gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_COMPARE_MODE, gl.COMPARE_REF_TO_TEXTURE);
-  gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_COMPARE_FUNC, gl.LEQUAL);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, this.depthFramebuffer);
 
-  return texture;
+    gl.viewport(0, 0, this.size, this.size);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, sides[faceIndex].face, this.cubeMapTexture, 0);
+  }
+}
+
+export function createShadowMapCubemap(gl, size) {
+
+
 }
 
 export function getSides(gl) {
@@ -32,22 +58,5 @@ export function getSides(gl) {
 }
 
 export function renderSceneToCubemap(gl, framebuffer, cubemapTexture, size, renderSceneCallback) {
-  const sides = getSides(gl);
 
-  for (let i = 0; i < 6; i++) {
-    gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
-    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, sides[i].face, cubemapTexture, 0);
-
-    gl.viewport(0, 0, size, size);
-    gl.clear(gl.DEPTH_BUFFER_BIT);
-
-    // Render the scene from the perspective of the current cubemap face
-    renderSceneCallback(sides[i]);
-
-    if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) != gl.FRAMEBUFFER_COMPLETE) {
-      console.error("Framebuffer is not complete");
-    }
-  }
-
-  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 }
