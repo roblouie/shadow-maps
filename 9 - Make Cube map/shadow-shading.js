@@ -107,7 +107,7 @@ faceInfos.forEach((faceInfo) => {
   const type = gl.FLOAT;
   gl.texImage2D(faceInfo.target, level, internalFormat, width, height, border, format, type, test);
 });
-  //gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
+  gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
 gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
 gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
 gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);

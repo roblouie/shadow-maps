@@ -19,10 +19,10 @@ void main(){
 const depthFragmentShader = `#version 300 es
 precision mediump float;
 
-out float fragmentdepth;
+out float fragDepth;
 
 void main(){
- fragmentdepth = gl_FragCoord.z;
+ fragDepth = gl_FragCoord.z;
 }
 `;
 
@@ -59,7 +59,8 @@ out vec3 fragColor;
 
 float ambientLight = 0.2;
 
-vec2 adjacentPixels[4] = vec2[](
+vec2 adjacentPixels[5] = vec2[](
+  vec2(0, 0),
   vec2(-1, 0), 
   vec2(1, 0), 
   vec2(0, 1), 
@@ -68,45 +69,43 @@ vec2 adjacentPixels[4] = vec2[](
 
 vec3 color = vec3(1.0, 1.0, 1.0);
 
+float bias = 0.002;
 float visibility = 1.0;
-float shadowSpread = 1100.0;
+float shadowSpread = 800.0;
 
 void main()
 {
+  float bias = 0.004;
   vec3 projCoords = positionFromLightPov.xyz / positionFromLightPov.w;
-  for (int i = 0; i < 4; i++) {
-    vec3 biased = vec3(projCoords.xy + adjacentPixels[i]/shadowSpread, projCoords.z);
+  vec3 biased = vec3(projCoords.xy, projCoords.z - bias);
     float hitByLight = texture(shadowMap, biased);
-    visibility *= max(hitByLight, 0.83);
-  }
+    visibility *= max(hitByLight, 0.2);
   
   vec3 normalizedNormal = normalize(vNormal);
   float lightCos = dot(uLightDirection, normalizedNormal);
   float brightness = max(lightCos * visibility, ambientLight);
-  fragColor = color * max(brightness * visibility, ambientLight);
+  fragColor = color * brightness;
 }`;
 
 
 const gl = document.querySelector('canvas').getContext('webgl2');
-
-const program = createProgram(gl, vertexShaderSrc, fragmentShaderSrc);
-const depthProgram = createProgram(gl, depthVertexShader, depthFragmentShader);
 
 gl.enable(gl.DEPTH_TEST);
 gl.enable(gl.CULL_FACE);
 
 const origin = new DOMPoint(0, 0, 0);
 
+const program = createProgram(gl, vertexShaderSrc, fragmentShaderSrc);
+const depthProgram = createProgram(gl, depthVertexShader, depthFragmentShader);
+
 // Setup Light
 gl.useProgram(program);
-const lightPosition = new DOMPoint(-0.5, 0.4, -2);
-const inverseLightDirection = normalize(new DOMPoint(-0.0, 1, -0.5));
+const inverseLightDirection = normalize(new DOMPoint(-0.5, 2, -2));
 const lightDirectionLoc = gl.getUniformLocation(program,'uLightDirection');
 gl.uniform3fv(lightDirectionLoc, new Float32Array([inverseLightDirection.x, inverseLightDirection.y, inverseLightDirection.z]));
-const lightPovProjection = createOrtho(-1,1,-1,1,0,6);
-const lightPovProj2 = createPerspective(Math.PI / 4, 1, 0.1, 4);
-
-const lightPovView = createLookAt(lightPosition, origin);
+const lightPovProjection = createOrtho(-1,1,-1,1,0,4);
+const lightPovProj2 = createPerspective(Math.PI / 3, 1, 0.1, 4);
+const lightPovView = createLookAt(inverseLightDirection, origin);
 const lightPovMvp = lightPovProj2.multiply(lightPovView);
 
 const lightPovMvpDepthLocation = gl.getUniformLocation(depthProgram, 'lightPovMvp');
@@ -119,30 +118,27 @@ const textureSpaceConversion = new DOMMatrix([
   0.0, 0.0, 0.5, 0.0,
   0.5, 0.5, 0.5, 1.0
 ]);
-const textureSpaceMvp = textureSpaceConversion.multiply(lightPovMvp);
+const textureSpaceMvp = textureSpaceConversion.multiplySelf(lightPovMvp);
 const lightPovMvpRenderLocation = gl.getUniformLocation(program, 'lightPovMvp');
 gl.useProgram(program);
 gl.uniformMatrix4fv(lightPovMvpRenderLocation, false, textureSpaceMvp.toFloat32Array());
 
+
 // Set Camera MVP Matrix
-const cameraPosition = new DOMPoint(-0.6, 0.7, -0.6);
-const projection = createPerspective(Math.PI / 3, 16 / 9, 0.1, 10);
-const projectionLoc = gl.getUniformLocation(program, 'modelViewProjection');
+const cameraPosition = new DOMPoint(0.6, 0.6, -0.6);
 const view = createLookAt(cameraPosition, origin);
+const projection = createPerspective(Math.PI / 3, 16 / 9, 0.1, 10);
 const modelViewProjection = projection.multiply(view);
+
+const projectionLoc = gl.getUniformLocation(program, 'modelViewProjection');
 gl.uniformMatrix4fv(projectionLoc, false, modelViewProjection.toFloat32Array());
+
 
 // Create cubes and bind their data
 const verticesPerCube = 6 * 6;
-const numberOfCubes = 6;
 const cubes = new Float32Array([
-  ...createCubeWithNormals(5, 0.1, 5, 0, 0, 0),
-  ...createCubeWithNormals(0.1, 0.4, 0.1, 0, 0.2, 0.2),
-  ...createCubeWithNormals(0.4, 0.3, 0.1, 0.3, 0.2, -0.4),
-  ...createCubeWithNormals(0.1, 0.2, 0.4, -0.5, 0.2, -0.3),
-  ...createCubeWithNormals(0.02, 0.5, 0.02, 0.5, 0.2, 0.5),
-  ...createCubeWithNormals(0.1, 0.1, 0.1, 0.4, 0.2, -0.7),
-
+  ...createCubeWithNormals(1, 0.1, 1, 0, 0, 0),
+  ...createCubeWithNormals(0.3, 0.5, 0.1, 0, 0, 0)
 ]);
 
 const vertexBuffer = gl.createBuffer();
@@ -171,81 +167,25 @@ gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, dept
 // Get access to the shadow map uniform so we can set it during draw
 const shadowMapLocation = gl.getUniformLocation(program, 'shadowMap');
 
-let previousTime = 0;
-
-const lightRotationAngles = new DOMPoint();
-const lightSpinRate = 0.15;
-const lightRiseSetRate = 0.05;
-
-const cameraRotationAngles = new DOMPoint();
-const cameraSpinRate = 0.1;
-let cameraZoom = 1;
-const cameraZoomRate = 0.1;
-
-function draw(time) {
-  const interval = (time - previousTime) / 1000;
-  previousTime = time;
-
-  lightRotationAngles.x += lightSpinRate * interval;
-  lightRotationAngles.y += lightRiseSetRate * interval;
-  lightRotationAngles.z += lightSpinRate * interval;
-
-  inverseLightDirection.x = (Math.cos(lightRotationAngles.x) * 1);
-  inverseLightDirection.y = Math.abs(Math.sin(lightRotationAngles.y) * 2);
-  inverseLightDirection.z = (Math.sin(lightRotationAngles.z) * 1);
-
-  const normalizedDirection = normalize(inverseLightDirection)
-
-  gl.uniform3fv(lightDirectionLoc, new Float32Array([normalizedDirection.x, normalizedDirection.y, normalizedDirection.z]));
-
-  const lightPovView = createLookAt(lightPosition, origin);
-  const lightPovMvp = lightPovProj2.multiply(lightPovView);
+function draw() {
+  gl.clearDepth(1.0);
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
   // Render shadow map to depth texture
   gl.useProgram(depthProgram);
-
-  gl.uniformMatrix4fv(lightPovMvpDepthLocation, false, lightPovMvp.toFloat32Array());
-
-
   gl.bindFramebuffer(gl.FRAMEBUFFER, depthFramebuffer);
-  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
   gl.viewport(0, 0, depthTextureSize.x, depthTextureSize.y);
-  gl.cullFace(gl.FRONT);
-  gl.drawArrays(gl.TRIANGLES, 0, verticesPerCube * numberOfCubes);
+  gl.drawArrays(gl.TRIANGLES, 0, verticesPerCube * 2);
 
-
-  // MAIN RENDER
+  // Set depth texture and render scene to canvas
   gl.useProgram(program);
-
-  cameraRotationAngles.x -= cameraSpinRate * interval;
-  cameraRotationAngles.y -= cameraSpinRate * interval;
-  cameraRotationAngles.z -= cameraSpinRate * interval;
-  cameraZoom += cameraZoomRate * interval;
-  const zoomPos = clamp(Math.sin(cameraZoom) * -2, -2, -1.2);
-  cameraPosition.x = (Math.cos(cameraRotationAngles.x) * zoomPos);
-  cameraPosition.y = Math.abs(Math.cos(cameraRotationAngles.y) * 0.2) + 0.5;
-  cameraPosition.z = (Math.sin(cameraRotationAngles.z) * zoomPos);
-  const view = createLookAt(cameraPosition, origin);
-  const modelViewProjection = projection.multiply(view);
-  gl.uniformMatrix4fv(projectionLoc, false, modelViewProjection.toFloat32Array());
-
-
-  const textureSpaceMvp = textureSpaceConversion.multiply(lightPovMvp);
-  gl.uniformMatrix4fv(lightPovMvpRenderLocation, false, textureSpaceMvp.toFloat32Array());
-
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
   gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
   gl.bindTexture(gl.TEXTURE_2D, depthTexture);
   gl.uniform1i(shadowMapLocation, 0);
-  gl.cullFace(gl.BACK);
-  gl.drawArrays(gl.TRIANGLES, 0, verticesPerCube * numberOfCubes);
+  gl.drawArrays(gl.TRIANGLES, 0, verticesPerCube * 2);
 
   requestAnimationFrame(draw);
 }
 
-draw(0);
-
-function clamp(num, min, max) {
-  return Math.min(Math.max(num, min), max);
-}
+draw();
