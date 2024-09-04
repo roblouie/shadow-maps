@@ -82,28 +82,37 @@ gl.enable(gl.CULL_FACE);
   // Get A 2D context
   /** @type {Canvas2DRenderingContext} */
   const ctx = new OffscreenCanvas(128, 128).getContext('2d'); // document.querySelector("#twod").getContext("2d");
+const ext = gl.getExtension('EXT_color_buffer_float');
+const ext2 = gl.getExtension('OES_texture_float_linear');
+const faceInfos = [
+  { target: gl.TEXTURE_CUBE_MAP_POSITIVE_X },
+  { target: gl.TEXTURE_CUBE_MAP_NEGATIVE_X },
+  { target: gl.TEXTURE_CUBE_MAP_POSITIVE_Y },
+  { target: gl.TEXTURE_CUBE_MAP_NEGATIVE_Y },
+  { target: gl.TEXTURE_CUBE_MAP_POSITIVE_Z },
+  { target: gl.TEXTURE_CUBE_MAP_NEGATIVE_Z },
+];
 
-  const faceInfos = [
-    { target: gl.TEXTURE_CUBE_MAP_POSITIVE_X, faceColor: '#F00', textColor: '#0FF', text: '+X' },
-    { target: gl.TEXTURE_CUBE_MAP_NEGATIVE_X, faceColor: '#FF0', textColor: '#00F', text: '-X' },
-    { target: gl.TEXTURE_CUBE_MAP_POSITIVE_Y, faceColor: '#0F0', textColor: '#F0F', text: '+Y' },
-    { target: gl.TEXTURE_CUBE_MAP_NEGATIVE_Y, faceColor: '#0FF', textColor: '#F00', text: '-Y' },
-    { target: gl.TEXTURE_CUBE_MAP_POSITIVE_Z, faceColor: '#00F', textColor: '#FF0', text: '+Z' },
-    { target: gl.TEXTURE_CUBE_MAP_NEGATIVE_Z, faceColor: '#F0F', textColor: '#0F0', text: '-Z' },
-  ];
-  faceInfos.forEach((faceInfo) => {
-    const {target, faceColor, textColor, text} = faceInfo;
-    generateFace(ctx, faceColor, textColor, text);
+faceInfos.forEach((faceInfo) => {
+  const test = new Float32Array(128 * 128 * 4);
+  test.fill(1.0);
 
-    // Upload the canvas to the cubemap face.
-    const level = 0;
-    const internalFormat = gl.RGBA;
-    const format = gl.RGBA;
-    const type = gl.UNSIGNED_BYTE;
-    gl.texImage2D(target, level, internalFormat, format, type, ctx.canvas);
-  });
-  gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
-  gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+  // Upload the data to the cubemap face.
+  const level = 0;
+  const internalFormat = gl.RGBA32F;
+  const width = 128;
+  const height = 128;
+  const border = 0;
+  const format = gl.RGBA;
+  const type = gl.FLOAT;
+  gl.texImage2D(faceInfo.target, level, internalFormat, width, height, border, format, type, test);
+});
+  //gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
+gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_R, gl.CLAMP_TO_EDGE);
 
   requestAnimationFrame(drawScene);
 

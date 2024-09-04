@@ -28,14 +28,13 @@ export class ShadowCubeMapFbo {
 
     this.depthFramebuffer = gl.createFramebuffer();
     gl.bindFramebuffer(gl.FRAMEBUFFER, this.depthFramebuffer);
-    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, this.depthTexture, 0);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.depthTexture, 0);
   }
 
   bindForWriting(faceIndex, gl) {
     const sides = getSides(gl);
 
     gl.bindFramebuffer(gl.FRAMEBUFFER, this.depthFramebuffer);
-
     gl.viewport(0, 0, this.size, this.size);
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, sides[faceIndex].face, this.cubeMapTexture, 0);
   }
@@ -48,12 +47,12 @@ export function createShadowMapCubemap(gl, size) {
 
 export function getSides(gl) {
   return [
-    { face: gl.TEXTURE_CUBE_MAP_POSITIVE_X, target: new DOMPoint(1.0, 0.0, 0.0),  up: new DOMPoint(0.0, 1.0, 0.0) },
-    { face: gl.TEXTURE_CUBE_MAP_NEGATIVE_X, target: new DOMPoint(-1., 0.0, 0.0), up: new DOMPoint(0.0, 1.0, 0.0) },
+    { face: gl.TEXTURE_CUBE_MAP_POSITIVE_X, target: new DOMPoint(1.0, 0.0, 0.0),  up: new DOMPoint(0.0, -1.0, 0.0) },
+    { face: gl.TEXTURE_CUBE_MAP_NEGATIVE_X, target: new DOMPoint(-1., 0.0, 0.0), up: new DOMPoint(0.0, -1.0, 0.0) },
     { face: gl.TEXTURE_CUBE_MAP_POSITIVE_Y, target: new DOMPoint(0.0, 1.0, 0.0),  up: new DOMPoint(0.0, 0.0, 1.0) },
     { face: gl.TEXTURE_CUBE_MAP_NEGATIVE_Y, target: new DOMPoint(0.0, -1.0, 0.0), up: new DOMPoint(0.0, 0.0, -1.0) },
-    { face: gl.TEXTURE_CUBE_MAP_POSITIVE_Z, target: new DOMPoint(0.0, 0.0, 1.0),  up: new DOMPoint(0.0, 1.0, 0.0) },
-    { face: gl.TEXTURE_CUBE_MAP_NEGATIVE_Z, target: new DOMPoint(0.0, 0.0, -1.0), up: new DOMPoint(0.0, 1.0, 0.0) }
+    { face: gl.TEXTURE_CUBE_MAP_POSITIVE_Z, target: new DOMPoint(0.0, 0.0, 1.0),  up: new DOMPoint(0.0, -1.0, 0.0) },
+    { face: gl.TEXTURE_CUBE_MAP_NEGATIVE_Z, target: new DOMPoint(0.0, 0.0, -1.0), up: new DOMPoint(0.0, -1.0, 0.0) }
   ];
 }
 

@@ -25,7 +25,7 @@ void main(){
 const depthFragmentShader = `#version 300 es
 precision mediump float;
 
-vec3 gLightWorldPos = vec3(0.0, 0.0, 0.0);
+vec3 gLightWorldPos = vec3(2.0, 1.0, 0.0);
 
 in vec3 worldPosition;
 
@@ -119,7 +119,7 @@ gl.uniformMatrix4fv(projectionLoc, false, modelViewProjection.toFloat32Array());
 const verticesPerCube = 6 * 6;
 const cubes = new Float32Array([
   ...createMultiColorCube(1, 0.1, 1, 0, -0.8, 0),
-  ...createMultiColorCube(0.3, 0.5, 0.1, -0.5, -0.3, 0),
+  ...createMultiColorCube(0.3, 0.5, 0.1, -0.7, -0.3, 0.0),
   ...createMultiColorCube(0.1, 0.1, 0.1, 0.1, -0.1, -0.2),
 ]);
 
@@ -174,6 +174,8 @@ function draw() {
   gl.bindTexture(gl.TEXTURE_CUBE_MAP, cubeMap.cubeMapTexture);
   gl.uniform1i(shadowMapLocation, 0);
   gl.drawArrays(gl.TRIANGLES, 0, verticesPerCube * 3);
+
+  requestAnimationFrame(draw);
 }
 
 draw();

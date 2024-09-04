@@ -78,7 +78,7 @@ const depthProgram = createProgram(gl, depthVertexShader, depthFragmentShader);
 
 // Set Light MVP Matrix
 const inverseLightDirection = new DOMPoint(-0.5, 2, -2);
-const lightPovProjection = createOrtho(-1,1,-1,1,0,4);
+const lightPovProjection = createPerspective(Math.PI / 3, 16 / 9, 0.1, 10);
 const lightPovView = createLookAt(inverseLightDirection, origin);
 const lightPovMvp = lightPovProjection.multiply(lightPovView);
 
@@ -141,10 +141,11 @@ function draw() {
 
   // Render shadow map to depth texture
   gl.useProgram(depthProgram);
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
   gl.bindFramebuffer(gl.FRAMEBUFFER, depthFramebuffer);
   gl.viewport(0, 0, depthTextureSize.x, depthTextureSize.y);
   gl.drawArrays(gl.TRIANGLES, 0, verticesPerCube * 2);
-
   // Set depth texture and render scene to canvas
   gl.useProgram(program);
   gl.bindFramebuffer(gl.FRAMEBUFFER, null);
